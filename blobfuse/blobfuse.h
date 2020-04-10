@@ -382,10 +382,20 @@ int azs_chown(const char *path, uid_t uid, gid_t gid);
 int azs_chmod(const char *path, mode_t mode);
 int azs_utimens(const char *path, const struct timespec ts[2]);
 int azs_truncate(const char *path, off_t off);
-int azs_setxattr(const char *path, const char *name, const char *value, size_t size, int flags);
 
 /** Not implemented. */
+#ifdef __APPLE__
+int azs_setxattr(const char *path, const char *name, const char *value, size_t size, int flags, uint32_t);
+#else
+int azs_setxattr(const char *path, const char *name, const char *value, size_t size, int flags);
+#endif // __APPLE__
+
+/** Not implemented. */
+#ifdef __APPLE__
+int azs_getxattr(const char *path, const char *name, char *value, size_t size, uint32_t);
+#else
 int azs_getxattr(const char *path, const char *name, char *value, size_t size);
+#endif // __APPLE__
 
 /** Not implemented. */
 int azs_listxattr(const char *path, char *list, size_t size);

@@ -192,7 +192,6 @@ int azs_read(const char *path, char *buf, size_t size, off_t offset, struct fuse
 
     return res;
 }
-#pragma GCC diagnostic pop
 
 // Note that in FUSE, create is not the same as open with specific flags (the way it is in Linux)
 // See the FUSE docs on these methods for more details.
@@ -258,8 +257,6 @@ int azs_write(const char *path, const char *buf, size_t size, off_t offset, stru
     return res;
 }
 
-#pragma GCC diagnostic pop
-
 int azs_flush(const char *path, struct fuse_file_info *fi)
 {
     AZS_DEBUGLOGV("azs_flush called with path = %s, fi->flags = %d, (((struct fhwrapper *)fi->fh)->fh) = %d.\n", path, fi->flags, (((struct fhwrapper *)fi->fh)->fh));
@@ -271,8 +268,8 @@ int azs_flush(const char *path, struct fuse_file_info *fi)
     char path_link_buffer[50];
     snprintf(path_link_buffer, 50, "/proc/self/fd/%d", (((struct fhwrapper *)fi->fh)->fh));
 
-    // canonicalize_file_name will follow symlinks to give the actual path name.
-    char *path_buffer = canonicalize_file_name(path_link_buffer);
+    // Follow symlinks to give the actual path name.
+    char *path_buffer = realpath(path_link_buffer, nullptr);
     if (path_buffer == NULL)
     {
         AZS_DEBUGLOGV("Skipped blob upload in azs_flush with input path %s because file no longer exists.\n", path);

@@ -739,12 +739,20 @@ int azs_rename(const char *src, const char *dst)
     return 0;
 }
 
-
+#ifdef __APPLE__
+int azs_setxattr(const char * /*path*/, const char * /*name*/, const char * /*value*/, size_t /*size*/, int /*flags*/, uint32_t)
+#else
 int azs_setxattr(const char * /*path*/, const char * /*name*/, const char * /*value*/, size_t /*size*/, int /*flags*/)
+#endif // __APPLE__
 {
     return -ENOSYS;
 }
+
+#ifdef __APPLE__
+int azs_getxattr(const char * /*path*/, const char * /*name*/, char * /*value*/, size_t /*size*/, uint32_t)
+#else
 int azs_getxattr(const char * /*path*/, const char * /*name*/, char * /*value*/, size_t /*size*/)
+#endif // __APPLE__
 {
     return -ENOSYS;
 }
