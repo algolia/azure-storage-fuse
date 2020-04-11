@@ -139,6 +139,7 @@ if(UNIX)
   set(WARNING "-Wall -Wextra -Werror -pedantic -pedantic-errors")
   string(APPEND WARNING " -Wno-deprecated-declarations") # Because 'gcry_thread_cbs' looks deprecated.
   string(APPEND WARNING " -Wno-gnu-zero-variadic-macro-arguments") #  Google tests use no arg for '...' variadic macro
+  string(APPEND WARNING " -Wno-unused-command-line-argument") # -lpthread to linker unused
   set(CMAKE_CXX_FLAGS "${CMAKE_THREAD_LIBS_INIT} ${WARNING} ${CMAKE_CXX_FLAGS}")
   include_directories(${CMAKE_SOURCE_DIR}/blobfuse ${CMAKE_SOURCE_DIR}/azure-storage-cpp-lite/include ${CURL_INCLUDE_DIRS} ${GNUTLS_INCLUDE_DIR} ${Boost_INCLUDE_DIR} nlohmann-json)
 
