@@ -263,14 +263,22 @@ int azs_flush(const char *path, struct fuse_file_info *fi)
 
     // At this point, the shared flock will be held.
 
+    char path_link_buffer[50] = {0};
+    char path_buffer[PATH_MAX] = {0};
+    bool is_path_found = false;
+
     // In some cases, due (I believe) to us using the hard_unlink option, path will be null.  Thus, we need to get the file name from the file descriptor:
-
-    char path_link_buffer[50];
-    snprintf(path_link_buffer, 50, "/proc/self/fd/%d", (((struct fhwrapper *)fi->fh)->fh));
-
     // Follow symlinks to give the actual path name.
-    char *path_buffer = realpath(path_link_buffer, nullptr);
-    if (path_buffer == NULL)
+    const int path_fd = ((struct fhwrapper *)fi->fh)->fh;
+
+#ifdef __APPLE__
+    is_path_found = fcntl(path_fd, F_GETPATH, path_buffer) != -1;
+#else
+    snprintf(path_link_buffer, 50, "/proc/self/fd/%d", path_fd);
+    is_path_found = realpath(path_link_buffer, path_buffer) != nullptr;
+#endif // __APPLE__
+
+    if (not is_path_found)
     {
         AZS_DEBUGLOGV("Skipped blob upload in azs_flush with input path %s because file no longer exists.\n", path);
         return 0;
@@ -312,14 +320,12 @@ int azs_flush(const char *path, struct fuse_file_info *fi)
                     // and with no blob on the service or in the cache.
                     // This mimics the behavior of a real file system.
 
-                    free(path_buffer);
                     AZS_DEBUGLOGV("Skipped blob upload in azs_flush with input path %s because file no longer exists due to a race condition with azs_unlink.\n", path);
                     return 0;
                 }
                 else
                 {
                     syslog(LOG_ERR, "Failing blob upload in azs_flush with input path %s because of an error from stat().  Errno = %d.\n", path, storage_errno);
-                    free(path_buffer);
                     return -storage_errno;
                 }
             }
@@ -334,7 +340,6 @@ int azs_flush(const char *path, struct fuse_file_info *fi)
             {
                 int storage_errno = errno;
                 syslog(LOG_ERR, "Failing blob upload in azs_flush with input path %s because of an error from upload_file_to_blob().  Errno = %d.\n", path, storage_errno);
-                free(path_buffer);
                 return 0 - map_errno(storage_errno);
             }
             else
@@ -348,7 +353,6 @@ int azs_flush(const char *path, struct fuse_file_info *fi)
         AZS_DEBUGLOGV("Skipped blob upload in azs_flush with input path %s because file no longer exists.\n", path);
     }
 
-    free(path_buffer);
     return 0;
 }
 
